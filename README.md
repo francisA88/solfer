@@ -34,7 +34,7 @@ Solfer is a web-based music tool that lets musicians type compositions in tonic 
 | Backend | Flask 3.x |
 | Database | SQLite (dev) → PostgreSQL (prod) |
 | ORM | Flask-SQLAlchemy 3.x |
-| Auth | Flask-Login, Werkzeug password hashing, Authlib (Google OAuth) |
+| Auth | Flask-Login, Werkzeug password hashing |
 | Payments | Flutterwave (inline JS + custom transfer polling) |
 | Background jobs | APScheduler (in-process, transfer payment polling) |
 | Rate limiting | Flask-Limiter + Redis |
