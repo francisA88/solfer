@@ -7,7 +7,7 @@ name = "solfer"
 version = "1.0.0"
 description = "Tonic solfa notation editor with audio playback and export"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = "==3.11"
 license = { text = "All rights reserved" }
 
 dependencies = [
