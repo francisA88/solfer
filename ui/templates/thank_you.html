@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment Successful • Solfer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font-ui:   'Inter', system-ui, -apple-system, sans-serif;
+  --font-nota: 'EB Garamond', 'Georgia', serif;
+
+  --bg:        #f5f4f1;
+  --surface:   #ffffff;
+  --surface2:  #f0efe9;
+
+  --border:    #e0ddd6;
+  --border2:   #c8c5bc;
+
+  --text:      #1a1a18;
+  --text2:     #5a5a56;
+  --text3:     #9a9a94;
+
+  --accent:    #185FA5;
+  --accent-bg: #e6f1fb;
+  --accent-t:  #0c447c;
+
+  --success:   #1f7a43;
+
+  --radius:    8px;
+  --radius-lg: 14px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Topbar ── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  color: var(--text);
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+/* ── Main ── */
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 540px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  padding: 42px 34px;
+
+  text-align: center;
+
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    0 8px 24px rgba(0,0,0,0.04);
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+
+  margin: 0 auto 22px;
+
+  border-radius: 50%;
+
+  background: #e8f7ee;
+  border: 1px solid #cfe8d8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--success);
+
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.title {
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 26px;
+}
+
+.notice {
+  background: var(--surface2);
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius);
+
+  padding: 14px 16px;
+
+  margin-bottom: 26px;
+
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.notice strong {
+  color: var(--text);
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 220px;
+
+  padding: 12px 20px;
+
+  border-radius: var(--radius);
+
+  text-decoration: none;
+
+  background: var(--accent);
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+.home-btn:hover {
+  background: var(--accent-t);
+}
+
+.home-btn:active {
+  transform: scale(0.98);
+}
+
+.redirect-note {
+  margin-top: 16px;
+
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* ── Footer ── */
+
+.footer {
+  padding: 10px 16px;
+
+  background: var(--surface);
+
+  border-top: 1px solid var(--border);
+
+  font-size: 11px;
+  color: var(--text3);
+
+  text-align: center;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 600px) {
+  .card {
+    padding: 34px 22px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .home-btn {
+    width: 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    Sol<span>fer</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <section class="card">
+
+    <div class="success-icon">
+      ✓
+    </div>
+
+    <h1 class="title">
+      Payment Successful!
+    </h1>
+
+    <p class="subtitle">
+      Thank you for your purchase. Your payment has been processed successfully and your account access has been updated.
+    </p>
+
+    <div class="notice">
+      Redirecting you to the home page in <strong><span id="countdown">5</span> seconds</strong>.
+    </div>
+
+    <a href="/" class="home-btn">
+      Return to Home Immediately →
+    </a>
+
+    <div class="redirect-note">
+      If the redirect does not happen automatically, use the button above.
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  Solfer • Payment Confirmation
+</footer>
+
+<script>
+let seconds = 5;
+
+const countdownEl = document.getElementById("countdown");
+
+const interval = setInterval(() => {
+  seconds--;
+
+  countdownEl.textContent = seconds;
+
+  if (seconds <= 0) {
+    clearInterval(interval);
+
+    window.location.href = "/";
+  }
+}, 1000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solfer — Activate access</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+
+{# Flutterwave inline JS #}
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+
+<style>
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+/* ── Card shell ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl, 16px);
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+/* ── Solfa deco strip ── */
+.card-deco {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 28px;
+  font-family: var(--font-nota);
+  font-size: 14px;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-deco .an { color: var(--accent); font-style: italic; }
+
+/* ── Card header ── */
+.card-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.card-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.card-title { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+.card-sub   { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* Price pill */
+.price-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.price-amount {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.price-period { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Customer row */
+.cust-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border);
+}
+.cust-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: var(--accent);
+  flex-shrink: 0;
+}
+.cust-info { flex: 1; }
+.cust-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+.cust-email { font-size: 11px; color: var(--text3); }
+
+/* ── Mode tabs ── */
+.mode-tabs {
+  display: flex;
+  padding: 16px 28px 0;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.mode-tab {
+  flex: 1;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  user-select: none;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--font-ui);
+}
+.mode-tab:hover { color: var(--text2); }
+.mode-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.mode-tab svg { flex-shrink: 0; }
+
+/* ── Panel body ── */
+.panel-body { padding: 24px 28px 28px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Card panel ── */
+.card-panel-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--accent-bg);
+  border: 1px solid #c5ddf5;
+  border-radius: var(--radius, 8px);
+}
+
+/* ── Transfer panel ── */
+.transfer-steps { margin-bottom: 20px; }
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-text { font-size: 13px; color: var(--text2); line-height: 1.55; }
+.step-text strong { color: var(--text); }
+
+/* Transfer details box */
+.transfer-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+  margin-bottom: 20px;
+  display: none;
+}
+.transfer-box.visible { display: block; }
+.transfer-box-header {
+  padding: 10px 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.transfer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.transfer-row:last-child { border-bottom: none; }
+.transfer-label { color: var(--text3); }
+.transfer-val {
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.copy-btn {
+  padding: 2px 7px;
+  font-size: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: all 0.1s;
+}
+.copy-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { background: #f0faf4; border-color: #b6e8cc; color: #1a7a3c; }
+
+/* Polling status strip */
+.poll-status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+.poll-status.visible { display: flex; }
+.poll-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.8); }
+}
+.poll-dot.success { background: #1a7a3c; animation: none; }
+.poll-dot.error   { background: var(--danger); animation: none; }
+
+/* ── Alert ── */
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius, 8px);
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  display: none;
+}
+.alert.error   { background: #fdf0f0; border: 1px solid #f5c6c6; color: var(--danger); display: block; }
+.alert.success { background: #f0faf4; border: 1px solid #b6e8cc; color: #1a6636; display: block; }
+
+/* ── Buttons ── */
+.btn-primary {
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: var(--radius, 8px);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover    { background: var(--accent-t); }
+.btn-primary:disabled { background: var(--border2); cursor: not-allowed; }
+
+.btn-outline {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.12s;
+  margin-top: 8px;
+}
+.btn-outline:hover { background: var(--surface2); }
+
+/* Loading spinner inline */
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.spinner.visible { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Footer ── */
+.page-footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 11px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Secure badge */
+.secure-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="{{ url_for('home') }}" class="logo" style="text-decoration:none;color:inherit;">
+    Sol<span style="color:var(--accent);">fer</span>
+  </a>
+  <div class="topbar-right">
+    {% if current_user.is_authenticated %}
+      <span class="topbar-username">{{ current_user.name }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="page">
+  <div style="width:100%;max-width:460px;">
+
+    {# Flash messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert {{ category }}" style="display:block;margin-bottom:12px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+
+      {# Solfa deco #}
+      <div class="card-deco">
+        4&#8260;4&nbsp;&nbsp;d&nbsp;:&nbsp;<span class="an">m</span>&nbsp;:&nbsp;
+        s&nbsp;:&nbsp;<span class="an">d'</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+        <span class="an">l</span>&nbsp;:&nbsp;t&nbsp;:&nbsp;d'&nbsp;:&nbsp;&#x2013;
+      </div>
+
+      {# Header #}
+      <div class="card-header">
+        <div class="card-header-top">
+          <div>
+            <div class="card-title">Activate audio export</div>
+            <div class="card-sub" style="margin-top:4px;">
+              Enables WAV (audio) export for {{ access_days }} days.
+              Renew anytime from your account.
+            </div>
+          </div>
+          <div class="price-pill">
+            <span class="price-amount" id="price-display">—</span>
+            <span class="price-period">one-time</span>
+          </div>
+        </div>
+
+        {# Customer row — populated by JS from /payment/initiate-payment #}
+        <div class="cust-row" id="cust-row" style="display:none;">
+          <div class="cust-avatar" id="cust-avatar"></div>
+          <div class="cust-info">
+            <div class="cust-name"  id="cust-name"></div>
+            <div class="cust-email" id="cust-email"></div>
+          </div>
+        </div>
+      </div>
+
+      {# Mode tabs #}
+      <div class="mode-tabs">
+        <!-- <button class="mode-tab active" id="tab-card" onclick="switchMode('card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="5" width="20" height="14" rx="2"
+                  stroke="currentColor" stroke-width="1.8"/>
+            <path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+          Card
+        </button> -->
+        <button class="mode-tab" id="tab-transfer" onclick="switchMode('transfer')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M7 16H3a1 1 0 01-1-1V5a1 1 0 011-1h13a1 1 0 011 1v3"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <rect x="9" y="11" width="13" height="9" rx="1.5"
+                  stroke="currentColor" stroke-width="1.8"/>
+            <path d="M9 15h4M9 17h2" stroke="currentColor"
+                  stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Bank transfer
+        </button>
+      </div>
+
+      <div class="panel-body">
+        <div class="alert" id="alert"></div>
+
+        <!-- {# ── CARD PANEL ── #}
+        <div class="panel active" id="panel-card">
+          <div class="card-panel-desc">
+            You'll be directed to Flutterwave's secure checkout to complete
+            your card payment. Your card details are never handled by Solfer.
+          </div>
+          <button class="btn-primary" id="card-pay-btn" onclick="initiateCardPayment()">
+            <span id="card-btn-text">Pay with card</span>
+            <div class="spinner" id="card-spinner"></div>
+          </button>
+        </div> -->
+
+        {# ── TRANSFER PANEL ── #}
+        <div class="panel" id="panel-transfer">
+
+          <div class="transfer-steps" id="transfer-steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                Click <strong>Generate account details</strong> below to get a
+                dedicated virtual account number for this transaction.
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                Transfer the exact amount shown to the provided account.
+                Use your banking app or USSD.
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                Stay on this page. It will update automatically once your
+                transfer is confirmed — usually within 1–2 minutes.
+              </div>
+            </div>
+          </div>
+
+          {# Transfer details — hidden until generated #}
+          <div class="transfer-box" id="transfer-box">
+            <div class="transfer-box-header">
+              <span>Transfer to this account</span>
+              <span id="transfer-expires" style="font-weight:400;opacity:0.85;"></span>
+            </div>
+            <div class="transfer-row">
+              <span class="transfer-label">Bank</span>
+              <span class="transfer-val" id="tf-bank">—</span>
+            </div>
+            <div class="transfer-row">
+              <span class="transfer-label">Account number</span>
+              <span class="transfer-val">
+                <span id="tf-acct">—</span>
+                <button class="copy-btn" onclick="copyField('tf-acct', this)">Copy</button>
+              </span>
+            </div>
+            <!-- <div class="transfer-row">
+              <span class="transfer-label">Account name</span>
+              <span class="transfer-val" id="tf-name">—</span>
+            </div> -->
+            <div class="transfer-row">
+              <span class="transfer-label">Amount</span>
+              <span class="transfer-val" id="tf-amount" style="color:var(--accent);">—</span>
+            </div>
+            <div class="transfer-row">
+              <span class="transfer-label">Reference</span>
+              <span class="transfer-val">
+                <span id="tf-ref" style="font-family:monospace;font-size:12px;">—</span>
+                <button class="copy-btn" onclick="copyField('tf-ref', this)">Copy</button>
+              </span>
+            </div>
+          </div>
+
+          {# Polling status #}
+          <div class="poll-status" id="poll-status">
+            <div class="poll-dot" id="poll-dot"></div>
+            <span id="poll-msg">Waiting for transfer confirmation…</span>
+          </div>
+
+          {# Generate / waiting button #}
+          <button class="btn-primary" id="transfer-btn" onclick="generateTransfer()">
+            <span id="transfer-btn-text">Generate account details</span>
+            <div class="spinner" id="transfer-spinner"></div>
+          </button>
+        </div>
+
+        <div class="secure-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="11" width="14" height="10" rx="2"
+                  stroke="var(--text3)" stroke-width="1.8"/>
+            <path d="M8 11V7a4 4 0 018 0v4"
+                  stroke="var(--text3)" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Secured by Flutterwave
+        </div>
+
+      </div>{# /.panel-body #}
+    </div>{# /.card #}
+
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3);">
+      <a href="{{ url_for('home') }}"
+         style="color:var(--accent);text-decoration:none;font-weight:500;">
+        ← Back to editor
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-footer">
+  &copy; 2026 Solfer &mdash; Tonic solfa notation made digital
+</div>
+
+<script src="{{ url_for('static', filename='scripts/payment2.js') }}"></script>
+
+{# CSRF meta tag — read by getCSRFToken() in JS #}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+</body>
+</html>

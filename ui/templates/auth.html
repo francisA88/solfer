@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solfer — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="{{url_for('static', filename='styles/auth.css')}}" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="logo">Sol<span>fer</span></a>
+  <span class="topbar-right">Tonic solfa notation editor</span>
+</div>
+
+<div class="page">
+  <div>
+    <div class="card">
+
+      <!-- Decorative solfa line -->
+      <div class="card-deco">
+        4&#8260;4&nbsp;&nbsp;d&nbsp;:&nbsp;<span class="accent-note">m</span>&nbsp;:&nbsp;s&nbsp;:&nbsp;d&nbsp;&nbsp;|&nbsp;&nbsp;<span class="accent-note">l</span>&nbsp;:&nbsp;t&nbsp;:&nbsp;d'&nbsp;:&nbsp;–
+      </div>
+
+      <div class="card-header">
+        <div class="card-title" id="card-title">Welcome back</div>
+        <div class="card-sub" id="card-sub">Sign in to access your compositions</div>
+      </div>
+
+      <!-- Tab switcher -->
+      <div class="tabs">
+        <button class="tab active" id="tab-login" onclick="switchTab('login')">Log in</button>
+        <button class="tab" id="tab-signup" onclick="switchTab('signup')">Sign up</button>
+      </div>
+
+      <!-- Alert banner -->
+      <div class="alert" id="alert"></div>
+
+      <!-- Google OAuth -->
+      {%if google_oauth_enabled %}
+      <a href="/auth/google" class="btn-google" onclick="return handleGoogle()">
+        <!-- Google SVG logo -->
+        <svg class="google-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        Continue with Google
+      </a>
+
+      <div class="divider">or</div>
+      {% endif %}
+
+      <!-- ── LOGIN PANEL ── -->
+      <div class="panel active" id="panel-login">
+        <form class="form" onsubmit="handleLogin(event)">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" required>
+            <span class="field-error" id="login-email-err"></span>
+          </div>
+
+          <div class="field">
+            <div class="password-row">
+              <label for="login-password">Password</label>
+              <a href="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+            </div>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+            <span class="field-error" id="login-password-err"></span>
+          </div>
+
+          <button type="submit" class="btn-primary">Log in</button>
+        </form>
+      </div>
+
+      <!-- ── SIGNUP PANEL ── -->
+      <div class="panel" id="panel-signup">
+        <form class="form" onsubmit="handleSignup(event)">
+          <div class="field">
+            <label for="signup-name">Full name</label>
+            <input type="text" id="signup-name" placeholder="Ada Lovelace" autocomplete="name" required>
+            <span class="field-error" id="signup-name-err"></span>
+          </div>
+
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email" required>
+            <span class="field-error" id="signup-email-err"></span>
+          </div>
+
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="••••••••"
+              autocomplete="new-password" required oninput="checkStrength(this.value)">
+            <div class="strength-bar">
+              <div class="strength-seg" id="seg1"></div>
+              <div class="strength-seg" id="seg2"></div>
+              <div class="strength-seg" id="seg3"></div>
+              <div class="strength-seg" id="seg4"></div>
+            </div>
+            <div class="strength-label" id="strength-label"></div>
+            <span class="field-error" id="signup-password-err"></span>
+          </div>
+
+          <div class="field">
+            <label for="signup-confirm">Confirm password</label>
+            <input type="password" id="signup-confirm" placeholder="••••••••" autocomplete="new-password" required>
+            <span class="field-error" id="signup-confirm-err"></span>
+          </div>
+          <input type="hidden" id="csrftoken" name="csrftoken" value="{{csrf_token()}}">
+          <button type="submit" class="btn-primary">Create account</button>
+        </form>
+
+        <!-- <div class="terms">
+          By signing up you agree to our
+          <a href="/terms" onclick="return handlePlaceholder('Terms of Service')">Terms of Service</a>
+          and
+          <a href="/privacy" onclick="return handlePlaceholder('Privacy Policy')">Privacy Policy</a>.
+        </div> -->
+      </div>
+
+    </div><!-- /.card -->
+
+    <div class="switch-mode" id="switch-mode">
+      Don't have an account? <a href="#" onclick="switchTab('signup'); return false;">Sign up free</a>
+    </div>
+
+  </div>
+</div><!-- /.page -->
+
+<div class="footer">
+  &copy; 2025 Solfer &mdash; Tonic solfa notation made digital
+</div>
+<script src="{{ url_for('static', filename='scripts/helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/auth.js') }}"></script>
+</body>
+</html>
