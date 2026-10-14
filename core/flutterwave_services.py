@@ -9,6 +9,9 @@ import sys
 
 sys.path.insert(0, pathlib.Path(__file__).parent.as_posix())
 
+# Addin this import here as a possible hack to make wasmer.io install it
+import psycopg2
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
