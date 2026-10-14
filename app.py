@@ -29,6 +29,10 @@ Routes
 '''
 
 import os
+import subprocess as sp
+# Another hack to install psycopg2 if it is not already installed, on wasmer.io.
+sp.call(["pip", "install", "psycopg2-binary", "psycopg2", "psycopg"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+
 # import json
 import hmac
 import hashlib
