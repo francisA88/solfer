@@ -13,6 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
 
+import db_api
 
 
 BASE_URL = 'https://f4bexperience.flutterwave.com'  # Base URL for Flutterwave API

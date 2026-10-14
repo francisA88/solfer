@@ -9,3 +9,6 @@ requests>=2.31       # authlib HTTP transport
 python-dotenv>=1.0   # load .env in development
 numpy==2.2.6
 gunicorn
+apscheduler
+psycopg2-binary
+psycopg

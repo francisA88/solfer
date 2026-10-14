@@ -19,13 +19,15 @@
 var paymentData   = null;   // populated from /payment/initiate-payment
 var txRef         = null;   // set when transfer is generated
 var pollInterval  = null;   // setInterval handle
-var POLL_EVERY_MS = 8000;   // 8 seconds
+var POLL_EVERY_MS = 4000;   // 4 seconds
 var MAX_POLLS     = 75;     // 10 minutes max (75 × 8s)
 var pollCount     = 0;
 
 /* ── Boot ── */
 window.addEventListener('DOMContentLoaded', function () {
   loadPaymentContext();
+  generateTransfer();  // Auto-start transfer flow for now (no card mode)
+  switchMode('transfer'); // Show transfer tab by default
 });
 
 async function loadPaymentContext() {
@@ -65,71 +67,13 @@ async function loadPaymentContext() {
 
 /* ── Mode switcher ── */
 function switchMode(mode) {
-  ['card', 'transfer'].forEach(function(m) {
+  ['transfer'].forEach(function(m) {
     document.getElementById('tab-' + m).classList.toggle('active', m === mode);
     document.getElementById('panel-' + m).classList.toggle('active', m === mode);
   });
   clearAlert();
 }
 
-/* ── Card payment ── */
-function initiateCardPayment() {
-  if (!paymentData) { showAlert('Payment details not loaded yet.', 'error'); return; }
-
-  setBtnLoading('card-pay-btn', 'card-btn-text', 'card-spinner', true);
-
-  /* Generate a tx_ref for this attempt */
-  var ref = 'SOLFER-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
-
-  FlutterwaveCheckout({
-    public_key:   paymentData.public_key,
-    tx_ref:       ref,
-    amount:       paymentData.amount,
-    currency:     paymentData.currency,
-    customer: {
-      email: paymentData.email,
-      name:  paymentData.name,
-    },
-    customizations: {
-      title:       'Solfer — Audio Export Access',
-      description: 'Enables MP3 export for ' + paymentData.access_days + ' days',
-      logo:        window.location.origin + '/static/img/logo.png',
-    },
-    payment_options: 'card',
-    callback: function(response) {
-      /* Flutterwave calls this on success — verify server-side */
-      if (response.status === 'successful' || response.status === 'completed') {
-        verifyCardPayment(response.transaction_id, ref);
-      } else {
-        setBtnLoading('card-pay-btn', 'card-btn-text', 'card-spinner', false);
-        showAlert('Payment was not completed. Please try again.', 'error');
-      }
-    },
-    onclose: function() {
-      setBtnLoading('card-pay-btn', 'card-btn-text', 'card-spinner', false);
-    }
-  });
-}
-
-async function verifyCardPayment(transactionId, ref) {
-  try {
-    var res = await fetch('/payment/verify-card', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-      body:    JSON.stringify({ transaction_id: transactionId, tx_ref: ref })
-    });
-    var data = await res.json();
-    if (res.ok && data.status === 'confirmed') {
-      redirect();
-    } else {
-      setBtnLoading('card-pay-btn', 'card-btn-text', 'card-spinner', false);
-      showAlert(data.error || 'Verification failed. Contact support.', 'error');
-    }
-  } catch (e) {
-    setBtnLoading('card-pay-btn', 'card-btn-text', 'card-spinner', false);
-    showAlert('Network error during verification.', 'error');
-  }
-}
 
 /* ── Transfer payment ── */
 async function generateTransfer() {
@@ -148,13 +92,13 @@ async function generateTransfer() {
     var data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
 
-    txRef = data.tx_ref;
-
+    txRef = data.reference;
+    console.log(data);
     /* Populate transfer box */
-    document.getElementById('tf-bank').textContent  = data.bank;
+    document.getElementById('tf-bank').textContent  = data.account_bank_name;
     document.getElementById('tf-acct').textContent  = data.account_number;
-    document.getElementById('tf-name').textContent  = data.account_name;
-    document.getElementById('tf-ref').textContent   = data.tx_ref;
+    // document.getElementById('tf-name').textContent  = data.account_name;
+    document.getElementById('tf-ref').textContent   = data.reference;
 
     if (data.expires_at) {
       document.getElementById('transfer-expires').textContent =
@@ -172,17 +116,18 @@ async function generateTransfer() {
     document.getElementById('transfer-btn').style.background = 'var(--border2)';
 
     /* Start polling */
-    startPolling();
+    startPolling(txRef);
 
   } catch (e) {
-    showAlert(e.message, 'error');
+    console.log(e);
+    showAlert("An error occured. Please try again shortly.", 'error');
     setBtnLoading('transfer-btn', 'transfer-btn-text', 'transfer-spinner', false);
     document.getElementById('transfer-btn').disabled = false;
   }
 }
 
 /* ── Polling ── */
-function startPolling() {
+function startPolling(txRef) {
   var statusEl = document.getElementById('poll-status');
   var dotEl    = document.getElementById('poll-dot');
   var msgEl    = document.getElementById('poll-msg');
@@ -206,12 +151,12 @@ function startPolling() {
       });
       var data = await res.json();
 
-      if (data.status === 'confirmed') {
+      if (data.status.toLowerCase().startsWith('succe')) { // I'm not quite sure that this will be a "succeeded" or a "success". This should match both anyway
         clearInterval(pollInterval);
         dotEl.className   = 'poll-dot success';
         msgEl.textContent = 'Transfer confirmed! Redirecting…';
         setTimeout(redirect, 1200);
-      } else if (data.status === 'failed') {
+      } else if (data.status.toLowerCase().startsWith('fail')) { // Once again, not sure if this is a "fail" or a "failed"
         clearInterval(pollInterval);
         dotEl.className   = 'poll-dot error';
         msgEl.textContent = 'Transfer failed or expired. Please try again.';
@@ -228,7 +173,7 @@ function startPolling() {
 
 /* ── Redirect on success ── */
 function redirect() {
-  window.location.href = "{{ url_for('payment.success') }}";
+  window.location.href = "/payment/success";
 }
 
 /* ── Copy helper ── */

@@ -29,7 +29,7 @@ Routes
 '''
 
 import os
-import json
+# import json
 import hmac
 import hashlib
 from datetime import datetime, timedelta, timezone
@@ -74,15 +74,33 @@ limiter = Limiter(key_func=lambda: current_user.id if current_user.is_authentica
 # App factory
 # ---------------------------------------------------------------------------
 
+# A little helper function to  always return timezone-aware UTC datetimes, even if the database returns naive values.
+def as_utc(dt):
+    """Return dt as an aware UTC datetime (naive values are assumed to be UTC)."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__, template_folder="ui/templates", static_folder="ui/static")
     csrf_protect.init_app(app)
     limiter.init_app(app)
 
+    uri = os.environ["DATABASE_URL"]
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = uri
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,   # drop dead connections instead of erroring
+        "pool_recycle": 1800,    # recycle before the server/proxy closes idle ones
+    }
     # ── Core config ─────────────────────────────────────────────────────────
     app.config.update(
         SECRET_KEY                = os.environ.get("SECRET_KEY", ""),
-        SQLALCHEMY_DATABASE_URI   = "sqlite:///"+str(Path(__file__).parent / "sqlite.db"),
+        # SQLALCHEMY_DATABASE_URI   = "sqlite:///"+str(Path(__file__).parent / "sqlite.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS = False,
 
         # Session cookie
@@ -217,11 +235,12 @@ def register_root_routes(app: Flask):
             
         print("PAID?: ", is_paid_user)
         return render_template(
-            "index2.html",
+            "index.html",
             user=current_user if current_user.is_authenticated else None,
             measures=measures,
             last_m_id=max((m["m_id"] for m in measures), default=0),
             is_paid_user=is_paid_user,
+            days_remaining=(as_utc(current_user.access_until) - datetime.now(timezone.utc)).days if current_user.is_authenticated and current_user.access_until else 0,
             # stripe_key=app.config["STRIPE_PUBLISHABLE_KEY"],
         )
 
@@ -555,7 +574,7 @@ def generate_transfer_deets():
     ), 200
 
 
-@payment_bp.get("/status/<string:tx_ref>")
+@payment_bp.get("/statuxs/<string:tx_ref>")
 def check_payment_status(tx_ref: str):
     print("Checking payment status for tx_ref:", tx_ref)
     flw_service = FlutterwaveService(
@@ -590,8 +609,7 @@ def success():
         'phone': None, 
         'meta': {}, 
         'created_datetime': '2026-07-15T12:49:07.347Z'
-  }, async def main():
-    tasks = [
+  }, 
 'description': 'Transfer from CHISOM FRANCIS ALI', 
 'meta': {}, 
 'payment_method': {
@@ -646,7 +664,7 @@ def handle_webhook():
     # Deduplication.
     if existing_tx:
         # Maybe it exists but its status has changed?
-        if existing_tx.status.lower() == "succeeded" or\
+        if existing_tx.status.lower().startswith("succe") or\
             existing_tx.status.lower() == status.lower():
             return jsonify(error="Transaction already processed"), 200
     
@@ -664,23 +682,26 @@ def handle_webhook():
 
     user = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
     if user and status.lower() == "succeeded":
-        Thread(target=lambda: send_receipt_email(
-            email_dest=email,
-            cust_name=user.name,
-            amount=str(amount),
-            reason="Audio export support (2 weeks)"
-        )).start()
-        if user.has_active_access:
-            # If user already has access and pays again, we can choose to either extend their access or ignore the payment. Here, we extend the access.
-            if user.access_until and user.access_until > datetime.now(timezone.utc):
-                user.access_until += timedelta(days=app.config["ACCESS_DURATION_DAYS"])
-            # user.is_paid_user = True
-        else:
-            user.access_until = datetime.now(timezone.utc) + timedelta(days=app.config["ACCESS_DURATION_DAYS"])
-            user.is_paid_user = True
-        
-        user.amount_paid = (user.amount_paid or 0) + amount
+        now = datetime.now(timezone.utc)
+        current_end = as_utc(user.access_until)
+
+        # Extend from the current expiry if it's still in the future, otherwise from now
+        base = current_end if current_end and current_end > now else now
+        user.access_until = base + timedelta(days=app.config["ACCESS_DURATION_DAYS"])
+        user.is_paid_user = True
+        user.amount_paid = int(user.amount_paid or 0) + amount
+
+        # Capture values now: the thread shouldn't touch the ORM object after the session ends
+        cust_name, amount_str = user.name, str(amount)
         db.session.commit()
+
+        # Send the receipt only after the commit succeeded
+        Thread(target=send_receipt_email, kwargs=dict(
+            email_dest=email,
+            cust_name=cust_name,
+            amount=amount_str,
+            reason="Audio export support (2 weeks)",
+        )).start()
     
     return jsonify(received=True), 200
 
@@ -697,10 +718,8 @@ def check_transfer_status(reference):
     if not tx:
         return jsonify(status="not found"), 404
     
-    if tx.status.lower() == "succeeded":
-        return jsonify(message="success"), 200
-    else: 
-        return jsonify(status=tx.status), 200
+    # if tx.status.lower().startswith("succ"):
+    return jsonify(status=tx.status.lower()), 200
 
 # ---------------------------------------------------------------------------
 # Entry point
