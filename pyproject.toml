@@ -17,5 +17,6 @@ dependencies = [
     "apscheduler",
     "psycopg",
     "psycopg2",
-    "psycopg2-binary"
+    "psycopg2-binary",
+    "psycopg-binary"
 ]
