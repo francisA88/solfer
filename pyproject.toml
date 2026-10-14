@@ -15,4 +15,7 @@ dependencies = [
     "numpy",
     "gunicorn",
     "apscheduler",
+    "psycopg",
+    "psycopg2",
+    "psycopg2-binary"
 ]
