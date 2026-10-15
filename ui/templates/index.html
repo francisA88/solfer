@@ -16,7 +16,25 @@
 
 {# App stylesheet #}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+{% set og_title = 'Solfer: tonic solfa editor' %}
+{% set og_desc  = 'Write tonic solfa notation in your browser, play it back instantly, and export your music to WAV.' %}
+{% set og_image = url_for('static', filename='img/preview.png', _external=True) %}
 
+<meta name="description" content="{{ og_desc }}">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Solfer">
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_desc }}">
+<!-- <meta property="og:url" content="{{ request.base_url }}"> -->
+<meta property="og:image" content="https://raw.githubusercontent.com/francisA88/solfer/refs/heads/main/ui/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Solfer, a tonic solfa notation editor">
+
+<!-- Twitter / X (falls back to the og: tags above for everything else) -->
+<meta name="twitter:card" content="summary_large_image">
 {#
   Pass Flask session data to JavaScript as a single JSON object
   injected into the page so the editor can restore state on load
