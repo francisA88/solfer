@@ -197,6 +197,8 @@ dialog.solfer-dialog {
   color: var(--text);
   font-family: inherit;
   box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+  margin: auto;                        /* center horizontally */
+  
 }
 dialog.solfer-dialog--small { width: min(440px, calc(100% - 32px)); }
 dialog.solfer-dialog::backdrop { background: rgba(0, 0, 0, .45); }

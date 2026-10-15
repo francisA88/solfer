@@ -120,6 +120,8 @@ def create_app(config: dict | None = None) -> Flask:
         GOOGLE_CLIENT_ID          = os.environ.get("GOOGLE_CLIENT_ID", ""),
         GOOGLE_CLIENT_SECRET      = os.environ.get("GOOGLE_CLIENT_SECRET", ""),
         GOOGLE_OAUTH_ENABLED      = bool(os.environ.get("GOOGLE_OAUTH_ENABLED", False)),
+
+        SUPPORT_EMAIL           = os.environ.get("SUPPORT_EMAIL", "solfercustservice@outlook.com")
     )
 
 
