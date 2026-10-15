@@ -186,3 +186,37 @@ select:focus { border-color: var(--accent); }
 @media (min-width: 1400px) {
   #app { max-width: 1400px; margin: 0 auto; }
 }
+
+dialog.solfer-dialog {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;                          /* so clicks inside never hit the <dialog> itself */
+  width: min(620px, calc(100% - 32px));
+  max-height: 85vh;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+}
+dialog.solfer-dialog--small { width: min(440px, calc(100% - 32px)); }
+dialog.solfer-dialog::backdrop { background: rgba(0, 0, 0, .45); }
+
+.dlg-inner { display: flex; flex-direction: column; max-height: 85vh; }
+.dlg-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #eee;
+}
+.dlg-head h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.dlg-close { background: none; border: 0; font-size: 16px; cursor: pointer; color: inherit; }
+.dlg-body { padding: 6px 18px 14px; overflow-y: auto; font-size: 14px; line-height: 1.55; }
+.dlg-body h3 { margin: 18px 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: #666; }
+.dlg-body code, .dlg-body kbd {
+  background: #f3f3f3; border-radius: 4px; padding: 1px 5px; font-size: 13px;
+}
+.dlg-table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; }
+.dlg-table td { padding: 5px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+.dlg-table td:first-child { white-space: nowrap; width: 1%; }
+.dlg-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 18px; border-top: 1px solid #eee; font-size: 13px;
+}

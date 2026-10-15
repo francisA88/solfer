@@ -9,10 +9,6 @@ import sys
 
 sys.path.insert(0, pathlib.Path(__file__).parent.as_posix())
 
-# Addin this import here as a possible hack to make wasmer.io install it
-# UPDATE: This didn't work, but leaving it here for now in case it is needed again
-# import psycopg2
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -21,8 +17,6 @@ import db_api
 
 
 BASE_URL = 'https://f4bexperience.flutterwave.com'  # Base URL for Flutterwave API
-DEBUG_BASE_URL = "https://devel"
-
 
 class AccessToken:
     def __init__(self):

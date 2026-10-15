@@ -849,6 +849,7 @@ function buildTempoPresets() {
 /* ── Keyboard shortcuts ── */
 document.addEventListener('keydown', function (e) {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (document.querySelector('dialog[open]')) return;
 
   var keyMap = { d: 'd', r: 'r', m: 'm', f: 'f', s: 's', l: 'l', t: 't' };
   if (keyMap[e.key]) { e.preventDefault(); appendNote(keyMap[e.key]); return; }

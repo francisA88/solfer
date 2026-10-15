@@ -48,12 +48,22 @@
 </head>
 
 <body>
+  {% set support_email = config.get('SUPPORT_EMAIL', 'support@yourdomain.com') %}
+
 <div id="app">
 
   {# ── Topbar ── #}
   <div class="topbar">
     <div class="logo">Sol<span>fer</span></div>
     <div class="topbar-right">
+      <!--Contact support-->
+      <button type="button" class="k sp" data-open="help-dialog"
+        aria-label="Help" title="How to use Solfer"
+        style="font-size:12px;padding:4px 10px;">?</button>
+
+      <a href="mailto:{{ support_email }}?subject={{ 'Solfer support request'|urlencode }}"
+        class="k sp" title="Contact support"
+        style="font-size:12px;padding:4px 10px;text-decoration:none;">Support</a>
 
       {% if current_user.is_authenticated %}
         {# Logged-in state: show user name + logout button #}
@@ -249,10 +259,132 @@
   </div>
 
 </div>{# /#app #}
+{# ── Help manual ── #}
+<dialog id="help-dialog" class="solfer-dialog" aria-labelledby="help-title">
+  <div class="dlg-inner">
+    <div class="dlg-head">
+      <h2 id="help-title">How to use Solfer</h2>
+      <button type="button" class="dlg-close" data-close aria-label="Close">✕</button>
+    </div>
+
+    <div class="dlg-body">
+      <h3>Getting started</h3>
+      <ol>
+        <li>Tap <strong>Enable audio</strong>. Browsers need a tap before they allow sound.</li>
+        <li>Choose the key, time signature and part (S, A, T, B).</li>
+        <li>Enter notes with the on-screen keys or your keyboard.</li>
+        <li>Press <strong>Enter</strong> (or the <strong>| bar</strong> key) to commit the measure. It moves to the Measures list.</li>
+      </ol>
+
+      <h3>Writing a measure</h3>
+      <p>Notes are <code>d r m f s l t</code>. Chromatic notes are <code>de me fe si ta</code>.
+         Beats are separated by <code>:</code>, and the number of beats must be a multiple of the
+         top number of the time signature (4 beats in 4/4).</p>
+
+      <table class="dlg-table">
+        <tr><td><code>:</code></td><td>Separates beats</td></tr>
+        <tr><td><code>.</code></td><td>Splits a beat into two eighth notes: <code>d.r</code></td></tr>
+        <tr><td><code>,</code></td><td>Splits an eighth into two sixteenths: <code>d,r.m</code></td></tr>
+        <tr><td><code>-</code></td><td>Sustain: holds the previous note for another beat</td></tr>
+        <tr><td>space</td><td>Rest</td></tr>
+        <tr><td><code>'</code></td><td>Octave up, e.g. <code>d'</code></td></tr>
+        <tr><td><code>₁</code> <code>₂</code></td><td>One or two octaves down</td></tr>
+      </table>
+
+      <p><strong>Examples (4/4)</strong></p>
+      <ul>
+        <li><code>d:r:m:f</code> : four quarter notes</li>
+        <li><code>d.r:m:f:s</code> : two eighths, then three quarters</li>
+        <li><code>d:r:m:-</code> : d, r, then m held for two beats</li>
+        <li><code>d,r.m:f:s:l</code> : two sixteenths, an eighth, then three quarters</li>
+      </ul>
+
+      <h3>Octaves</h3>
+      <p>The <strong>Next note octave</strong> buttons in the sidebar, or the <kbd>↑</kbd> / <kbd>↓</kbd>
+         arrow keys, set the octave for the notes you enter next.</p>
+
+      <h3>Keyboard shortcuts</h3>
+      <table class="dlg-table">
+        <tr><td><kbd>d r m f s l t</kbd></td><td>Enter a note</td></tr>
+        <tr><td><kbd>Space</kbd></td><td>Rest</td></tr>
+        <tr><td><kbd>:</kbd> <kbd>.</kbd> <kbd>,</kbd> <kbd>-</kbd></td><td>Beat separator, eighth, sixteenth, sustain</td></tr>
+        <tr><td><kbd>Backspace</kbd></td><td>Delete the last note or symbol</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Commit the measure</td></tr>
+        <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Change octave</td></tr>
+      </table>
+
+      <h3>Saved measures</h3>
+      <p><strong>▶</strong> plays a measure, <strong>edit</strong> loads it back into the editor
+         (commit again to save your changes), and <strong>✕</strong> deletes it.</p>
+
+      <h3>Exporting</h3>
+      <p>Exporting to .WAV is available to paid users with an active subscription.</p>
+
+      <h3>Not supported yet</h3>
+      <p>Triplet notation. Beats can currently be split into eighths and sixteenths only.</p>
+
+      <h3>Need a hand?</h3>
+      <p>Email <a href="mailto:{{ support_email }}?subject={{ 'Solfer support request'|urlencode }}">Contact support</a>
+         at <strong>{{ support_email }}</strong>.</p>
+    </div>
+  </div>
+</dialog>
+
+{# ── Shown on every home page load until dismissed ── #}
+<dialog id="notice-dialog" class="solfer-dialog solfer-dialog--small" aria-labelledby="notice-title">
+  <div class="dlg-inner">
+    <div class="dlg-head">
+      <h2 id="notice-title">Heads up: triplets aren't supported yet</h2>
+      <button type="button" class="dlg-close" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="dlg-body">
+      <p>Solfer can't enter or play triplets (three notes in the space of one beat) yet.
+         For now, beats can be split into eighth and sixteenth notes only.</p>
+      <p>Tap the <strong>?</strong> in the top bar at any time for the full guide.</p>
+    </div>
+    <div class="dlg-foot">
+      <label><input type="checkbox" id="notice-dismiss"> Don't show this again</label>
+      <button type="button" class="k sp" data-close>Got it</button>
+    </div>
+  </div>
+</dialog>
 
 {# App JS — loaded last so the DOM is ready and SOLFER_CTX is defined #}
 <script src="{{ url_for('static', filename='scripts/helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+<script>
+(function () {
+  // Open: any element with data-open="<dialog id>"
+  document.querySelectorAll('[data-open]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var d = document.getElementById(el.dataset.open);
+      if (d && !d.open) d.showModal();
+    });
+  });
+
+  // Close: any element with data-close, or a click on the backdrop
+  document.querySelectorAll('dialog.solfer-dialog').forEach(function (d) {
+    d.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { d.close(); });
+    });
+    d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+  });
+
+  // Triplet notice: shown on every load unless the user ticked "Don't show again"
+  var KEY = 'solfer_triplet_notice_v1';   // bump the suffix to show it to everyone again
+  var notice = document.getElementById('notice-dialog');
+  var dismiss = document.getElementById('notice-dismiss');
+
+  function alreadyDismissed() {
+    try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+  }
+  notice.addEventListener('close', function () {   // fires for Esc, button and backdrop
+    if (dismiss.checked) { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  });
+  if (!alreadyDismissed()) notice.showModal();
+})();
+</script>
+
 <!-- <script src="{{ url_for('static', filename='scripts/auth.js') }}"></script> -->
 
 </body>
