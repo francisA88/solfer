@@ -2,9 +2,9 @@
 
 **Tonic solfa notation editor with audio playback and MP3 export.**
 
-> 🔗 **Live app:** _[insert deployed URL here]_
+> 🔗 **Live app:** _https://solfer.wasmer.app_
 
-Solfer is a web-based music tool that lets musicians type compositions in tonic solfa notation using a dedicated on-screen keyboard, hear each note as it is entered, and export the result as a WAV/MP3 audio file. It supports all 12 keys, four vocal parts (SATB), three time signatures, and full subdivision (quarter, eighth, sixteenth notes) with sustain and rest notation.
+Solfer is a web-based music tool that lets musicians type bits of compositions in tonic solfa notation using a dedicated on-screen keyboard, hear each note as it is entered, and export the result as a WAV/MP3 (MP3 to be added in later versions) audio file. It supports all 12 keys, four vocal parts (SATB), three time signatures, and full subdivision (quarter, eighth, sixteenth notes) with sustain and rest notation. Triplet notation is not yet supported.
 
 ---
 
@@ -20,7 +20,7 @@ Solfer is a web-based music tool that lets musicians type compositions in tonic 
 - **Payment-gated export** — audio export is available to paid users only; one-time payment via Flutterwave (card and bank transfer)
 - **Persistent compositions** — measures are saved to the database per user and restored on next login
 - **Password reset** — HMAC-signed token flow with email delivery via SMTP
-- **Rate limiting** — brute-force protection on auth endpoints via Flask-Limiter + Redis
+- **Rate limiting** — brute-force protection on auth endpoints via Flask-Limiter + in-memory storage (to be relaced with Redis later)
 
 ---
 
@@ -32,7 +32,7 @@ Solfer is a web-based music tool that lets musicians type compositions in tonic 
 | Audio (browser) | Tone.js 14.7 |
 | Audio (server) | Python `wave` + NumPy |
 | Backend | Flask 3.x |
-| Database | SQLite (dev) → PostgreSQL (prod) |
+| Database | PostgreSQL |
 | ORM | Flask-SQLAlchemy 3.x |
 | Auth | Flask-Login, Werkzeug password hashing |
 | Payments | Flutterwave (inline JS + custom transfer polling) |
@@ -47,29 +47,41 @@ Solfer is a web-based music tool that lets musicians type compositions in tonic 
 
 ```
 solfer_project/
-├── app.py                  # Flask application factory + all routes
-├── models.py               # SQLAlchemy models (User, Measure)
-├── mailer.py               # Email utilities (reset, receipt)
-├── solfer_wav.py           # Server-side WAV generator
-├── requirements.txt
-├── .env.example
-└── ui/
-    ├── templates/
-    │   ├── index.html          # Main editor page
-    │   ├── auth.html           # Login / signup page
-    │   ├── forgot_password.html
-    │   ├── reset_password.html
-    │   ├── payment.html        # Payment page (card + transfer)
-    │   └── payment_success.html
-    ├── static/
-    │   ├── css/
-    │   │   └── main.css
-    │   └── scripts/
-    │       ├── main.js         # Editor logic, notation parser, playback
-    │       └── auth.js         # Auth helpers, CSRF token
-    └── scripts/                # (legacy location, see static/scripts/)
+├── core/
+│   ├── db_api.py                         # Database helper functions
+│   ├── flutterwave_services.py           # Flutterwave API client functions
+│   ├── helpers.py                        # Shared helper functions
+│   ├── mailer.py                         # Email utilities (reset, receipt)
+│   ├── measure_to_audio.py               # Server-side WAV generator
+│   └── models.py                         # SQLAlchemy models (User, Measure)
+├── ui/
+│   ├── static/
+│   │   ├── img/
+│   │   │   └── logo.png
+│   │   ├── scripts/
+│   │   │   ├── auth.js                   # Auth helpers
+│   │   │   ├── helpers.js                # JS helpers. Pretty much just csrfToken stuff for now
+│   │   │   ├── main.js                   # Editor logic, notation parser, playback
+│   │   │   ├── payment.js                # Payment page logic
+│   │   │   └── Tone.min.js               # Tone.js audio engine (served locally)
+│   │   └── styles/
+│   │       ├── auth.css
+│   │       ├── forgot_password.css
+│   │       └── main.css
+│   └── templates/
+│       ├── auth.html                     # Login / signup page
+│       ├── forgot_password.html
+│       ├── index.html                    # Main editor page
+│       ├── payment.html                  # Payment page (card + transfer)
+│       ├── reset_password.html
+│       └── thank_you.html                # Payment confirmation page
+├── .env                                  # Local secrets (not committed. Alright then...keep your secrets)
+├── .gitignore
+├── app.py                                # Flask application factory + all routes
+├── pyproject.toml
+├── README.md
+└── requirements.txt
 ```
-
 ---
 
 ## Notation format
@@ -90,58 +102,6 @@ d,de.r:m            → sixteenth-d + sixteenth-de as first eighth, eighth-r, qu
 - A space ` ` is a rest.
 - Octave up: append `'` to a note (e.g. `d'`).
 - Octave down: append `₁` or `₂` (e.g. `d₁`).
-
----
-
-## Local development setup
-
-### 1. Clone and create a virtual environment
-
-```bash
-git clone <repo-url>
-cd solfer_project
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Configure environment variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and fill in every value. See `.env.example` for the full list. The minimum required for local dev:
-
-```
-SECRET_KEY=any-long-random-string
-DATABASE_URL=sqlite:///solfer.db
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=yourname@gmail.com
-SMTP_KEY=your-gmail-app-password
-SMTP_CUST_SERVICE_MAIL=yourname@gmail.com
-```
-
-Stripe/Flutterwave and Google OAuth keys are optional locally — the app runs without them but payment and Google login will be disabled.
-
-### 3. Start Redis (required for rate limiting)
-
-```bash
-# macOS
-brew install redis && brew services start redis
-
-# Ubuntu / Debian
-sudo apt install redis-server && sudo systemctl start redis
-```
-
-### 4. Run the app
-
-```bash
-flask --app app run --debug
-```
-
-The editor is available at `http://localhost:5000`.
 
 ---
 
@@ -201,7 +161,7 @@ Access is time-limited (see `ACCESS_DURATION_DAYS`). Users must return to the pa
 
 ## Audio export
 
-WAV export is handled entirely server-side by `solfer_wav.py` using Python's built-in `wave` module and NumPy. No FFmpeg or external codec is required for WAV output.
+WAV export is handled entirely server-side by `measure_to_audio.py` using Python's built-in `wave` module and NumPy. No FFmpeg or external codec is required for WAV output.
 
 The export endpoint (`POST /convert-audio`) receives the full composition as a JSON string, generates a WAV file in a temporary directory, streams it back to the browser, and deletes the temp file. Export is only available to users with active paid access.
 
