@@ -576,18 +576,18 @@ def generate_transfer_deets():
     ), 200
 
 
-@payment_bp.get("/statuxs/<string:tx_ref>")
-def check_payment_status(tx_ref: str):
-    print("Checking payment status for tx_ref:", tx_ref)
-    flw_service = FlutterwaveService(
-        client_id=os.environ.get("FLUTTERWAVE_CLIENT_ID", ""),
-        client_secret=os.environ.get("V4_FLUTTERWAVE_CLIENT_SECRET", "")
-    )
-    status = flw_service._check_transfer_status_once(tx_ref)
-    print(status)
-    if status:
-        return jsonify(status=status), 200
-    return jsonify(error="could not fetch details"), 200
+# @payment_bp.get("/statuxs/<string:tx_ref>")
+# def check_payment_status(tx_ref: str):
+#     print("Checking payment status for tx_ref:", tx_ref)
+#     flw_service = FlutterwaveService(
+#         client_id=os.environ.get("FLUTTERWAVE_CLIENT_ID", ""),
+#         client_secret=os.environ.get("V4_FLUTTERWAVE_CLIENT_SECRET", "")
+#     )
+#     status = flw_service._check_transfer_status_once(tx_ref)
+#     print(status)
+#     if status:
+#         return jsonify(status=status), 200
+#     return jsonify(error="could not fetch details"), 200
 
 @payment_bp.get("/success")
 def success():

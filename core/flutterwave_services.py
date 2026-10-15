@@ -9,6 +9,7 @@ import sys
 
 sys.path.insert(0, pathlib.Path(__file__).parent.as_posix())
 
+# NOTE: All Apscheduler functionality has been ignored for now in favour of a more simpler client-polling approach by the frontend. However, I'll still leave some of the code in to be refactored out later. 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
